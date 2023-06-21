@@ -32,7 +32,7 @@ def match():
             distance_threshold = 200
             good_matches = [match for match in matches if match.distance < distance_threshold]
             print(len(good_matches) / len(matches))
-            if((len(good_matches) / len(matches)) > 0.05):
+            if((len(good_matches) / len(matches)) > 0.04):
                 passing.append(other[x])
             os.remove(otherName)
         except:
@@ -60,8 +60,3 @@ def match():
 
 if __name__ == '__main__':
     app.run()
-
-# Get highest price, lowest price, and mean.
-# New range = mean - ((mean - min) * 0.75) and mean + ((max - mean) * 0.75)
-# Final range = ((max - min) * 0.75) then position out of previous range based on condition.
-# Round to two decimal places.
