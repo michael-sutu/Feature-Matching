@@ -56,7 +56,7 @@ def match():
     min = mean - ((mean - min) * 0.75)
     max = mean + ((max - mean) * 0.75)
     print(f'Min: {min}, Max: {max}, Total: {total}, Mean: {total / len(passing)}')
-    return jsonify({"min": min, "max": max})
+    return jsonify({"min": round(min), "max": (max)})
 
 if __name__ == '__main__':
     app.run()
