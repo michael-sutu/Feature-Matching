@@ -20,20 +20,24 @@ def match():
 
     passing = []
     for x in range(len(other)):
-        otherName = f"{random.randint(0, 1000000)}.png"
-        urllib.request.urlretrieve(other[x]["Image"][0], otherName)
-        image2 = cv2.imread(otherName, cv2.IMREAD_GRAYSCALE)
-        keypoints2, descriptors2 = detector.detectAndCompute(image2, None)
+        try:
+            otherName = f"{random.randint(0, 1000000)}.png"
+            urllib.request.urlretrieve(other[x]["Image"][0], otherName)
+            image2 = cv2.imread(otherName, cv2.IMREAD_GRAYSCALE)
+            keypoints2, descriptors2 = detector.detectAndCompute(image2, None)
 
-        matcher = cv2.BFMatcher(cv2.NORM_L2, crossCheck=False)
-        matches = matcher.match(descriptors1, descriptors2) 
+            matcher = cv2.BFMatcher(cv2.NORM_L2, crossCheck=False)
+            matches = matcher.match(descriptors1, descriptors2) 
 
-        distance_threshold = 200
-        good_matches = [match for match in matches if match.distance < distance_threshold]
-        print(len(good_matches) / len(matches))
-        if((len(good_matches) / len(matches)) > 0.05):
-            passing.append(other[x])
-        os.remove(otherName)
+            distance_threshold = 200
+            good_matches = [match for match in matches if match.distance < distance_threshold]
+            print(len(good_matches) / len(matches))
+            if((len(good_matches) / len(matches)) > 0.05):
+                passing.append(other[x])
+            os.remove(otherName)
+        except:
+            print("an erro has occured")
+        
     print(passing)
     os.remove(mainName)
     print("removed")
