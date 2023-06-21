@@ -34,7 +34,9 @@ def match():
         if((len(good_matches) / len(matches)) > 0.05):
             passing.append(other[x])
         os.remove(otherName)
+    print(passing)
     os.remove(mainName)
+    print("removed")
     min = float("inf")
     max = 0
     total = 0
