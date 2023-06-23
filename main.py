@@ -4,6 +4,7 @@ import urllib.request
 import os
 import random
 import json
+import traceback
 
 detector = cv2.SIFT_create()
 
@@ -13,6 +14,7 @@ app = Flask(__name__)
 def match():
     other = json.loads(request.get_data(as_text=True))
     start = request.args.get("start")
+    condition = int(request.args.get("condition"))
     mainName = f"{random.randint(0, 1000000)}.png"
     urllib.request.urlretrieve(start, mainName)
     image1 = cv2.imread(mainName, cv2.IMREAD_GRAYSCALE)
@@ -31,32 +33,45 @@ def match():
 
             distance_threshold = 200
             good_matches = [match for match in matches if match.distance < distance_threshold]
-            print(len(good_matches) / len(matches))
-            if((len(good_matches) / len(matches)) > 0.04):
-                passing.append(other[x])
+            other[x]["Match"] = len(good_matches) / len(matches)
+            passing.append(other[x])
             os.remove(otherName)
-        except:
-            print("an erro has occured")
-        
-    print(passing)
-    os.remove(mainName)
-    print("removed")
-    min = float("inf")
-    max = 0
-    total = 0
-    print(len(passing))
-    for x in range(len(passing)):
-        print(passing[x])
-        if float(passing[x]["Price"]) > max:
-            max = float(passing[x]["Price"])     
-        if float(passing[x]["Price"]) < min:
-            min = float(passing[x]["Price"])
-        total += float(passing[x]["Price"])
-    mean = total / len(passing)
-    min = mean - ((mean - min) * 0.75)
-    max = mean + ((max - mean) * 0.75)
-    print(f'Min: {min}, Max: {max}, Total: {total}, Mean: {total / len(passing)}')
-    return jsonify({"min": round(min, 2), "max": round(max, 2)})
+        except Exception as error:
+            print("An error occurred: ",error)
+            traceback.print_exc()
+            return jsonify({"min": round(1, 2), "max": round(1, 2)})
+    try:
+        os.remove(mainName)
+        newPassing = []
+        maxScore = max(passing, key=lambda x: x["Match"])
+        maxScore = maxScore["Match"]
+        for x in range(len(passing)):
+            if passing[x]["Match"] > (maxScore * 0.8):
+                newPassing.append(passing[x])
+
+        min = float("inf")
+        maxValue = 0
+        total = 0
+        for x in range(len(newPassing)):
+            if float(newPassing[x]["Price"]) > maxValue:
+                maxValue = float(newPassing[x]["Price"])     
+            if float(newPassing[x]["Price"]) < min:
+                min = float(newPassing[x]["Price"])
+            total += float(newPassing[x]["Price"])
+        mean = total / len(newPassing)
+        min = mean - ((mean - min) * 0.75)
+        maxValue = mean + ((maxValue - mean) * 0.75)
+
+        condPointer = (maxValue - min) * (condition / 100)
+        condPointer = min + condPointer
+        min = condPointer - ((condPointer - min) * 0.75)
+        maxValue = condPointer + ((maxValue - condPointer) * 0.75)
+        return jsonify({"min": round(min, 2), "max": round(maxValue, 2)})
+    except Exception as error: 
+        print("An error occurred: ",error)
+        traceback.print_exc()
+        return jsonify({"min": round(0, 2), "max": round(0, 2)})
+    
 
 if __name__ == '__main__':
     app.run()
