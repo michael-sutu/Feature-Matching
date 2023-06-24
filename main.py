@@ -12,17 +12,17 @@ app = Flask(__name__)
 
 @app.route('/', methods=['POST'])
 def match():
-    other = json.loads(request.get_data(as_text=True))
-    start = request.args.get("start")
-    condition = int(request.args.get("condition"))
-    mainName = f"{random.randint(0, 1000000)}.png"
-    urllib.request.urlretrieve(start, mainName)
-    image1 = cv2.imread(mainName, cv2.IMREAD_GRAYSCALE)
-    keypoints1, descriptors1 = detector.detectAndCompute(image1, None)
+    try:
+        other = json.loads(request.get_data(as_text=True))
+        start = request.args.get("start")
+        condition = int(request.args.get("condition"))
+        mainName = f"{random.randint(0, 1000000)}.png"
+        urllib.request.urlretrieve(start, mainName)
+        image1 = cv2.imread(mainName, cv2.IMREAD_GRAYSCALE)
+        keypoints1, descriptors1 = detector.detectAndCompute(image1, None)
 
-    passing = []
-    for x in range(len(other)):
-        try:
+        passing = []
+        for x in range(len(other)):
             otherName = f"{random.randint(0, 1000000)}.png"
             urllib.request.urlretrieve(other[x]["Image"][0], otherName)
             image2 = cv2.imread(otherName, cv2.IMREAD_GRAYSCALE)
@@ -36,11 +36,6 @@ def match():
             other[x]["Match"] = len(good_matches) / len(matches)
             passing.append(other[x])
             os.remove(otherName)
-        except Exception as error:
-            print("An error occurred: ",error)
-            traceback.print_exc()
-            return jsonify({"min": round(1, 2), "max": round(1, 2)})
-    try:
         os.remove(mainName)
         newPassing = []
         maxScore = max(passing, key=lambda x: x["Match"])
@@ -66,12 +61,11 @@ def match():
         condPointer = min + condPointer
         min = condPointer - ((condPointer - min) * 0.75)
         maxValue = condPointer + ((maxValue - condPointer) * 0.75)
-        return jsonify({"min": round(min, 2), "max": round(maxValue, 2)})
+        return jsonify({"min": round(min, 2), "max": round(maxValue, 2)}) 
     except Exception as error: 
         print("An error occurred: ",error)
         traceback.print_exc()
-        return jsonify({"min": round(0, 2), "max": round(0, 2)})
-    
+        return jsonify({"min": round(-1, 2), "max": round(-1, 2), "Error": error})
 
 if __name__ == '__main__':
     app.run()
